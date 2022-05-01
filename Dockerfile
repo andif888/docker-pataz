@@ -1,7 +1,7 @@
 FROM ubuntu:focal
 LABEL maintainer="andif888"
 ENV DEBIAN_FRONTEND noninteractive
-ENV TF_VERSION 1.1.7
+ENV TF_VERSION 1.1.9
 ENV PACKER_VERSION 1.8.0
 
 ENV pip_packages "ansible cryptography pywinrm kerberos requests_kerberos passlib msrest PyVmomi pymssql"
@@ -21,6 +21,7 @@ RUN apt-get update \
         libkrb5-dev \
         libssl-dev \
         lsb-release \
+        mkisofs \
         openssh-client \
         python3-dev \
         python3-gssapi \
