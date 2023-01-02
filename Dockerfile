@@ -5,7 +5,7 @@ ENV TF_VERSION 1.3.6
 ENV PACKER_VERSION 1.8.5
 ENV VAULT_VERSION 1.12.2
 
-ENV pip_packages "ansible cryptography pywinrm kerberos requests_kerberos passlib msrest msrestazure PyVmomi pymssql"
+ENV pip_packages "ansible cryptography pywinrm kerberos requests_kerberos passlib msrest msrestazure PyVmomi pymssql proxmoxer"
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
