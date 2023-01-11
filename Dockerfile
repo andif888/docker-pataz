@@ -1,11 +1,11 @@
 FROM ubuntu:focal
 LABEL maintainer="andif888"
 ENV DEBIAN_FRONTEND noninteractive
-ENV TF_VERSION 1.3.6
+ENV TF_VERSION 1.3.7
 ENV PACKER_VERSION 1.8.5
 ENV VAULT_VERSION 1.12.2
 
-ENV pip_packages "ansible cryptography pywinrm kerberos requests_kerberos passlib msrest msrestazure PyVmomi pymssql proxmoxer"
+ENV pip_packages "ansible cryptography pywinrm kerberos requests_kerberos requests-credssp passlib msrest msrestazure PyVmomi pymssql proxmoxer"
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -41,7 +41,7 @@ RUN apt-get update \
 
 RUN pip install --upgrade pip \
     && pip install $pip_packages \
-    && pip install 'ansible[azure]' \
+    && pip install 'ansible' \
     && ansible-galaxy collection install azure.azcollection community.general community.hashi_vault \
     && pip install -r ~/.ansible/collections/ansible_collections/azure/azcollection/requirements-azure.txt
 
