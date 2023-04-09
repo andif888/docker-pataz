@@ -1,9 +1,9 @@
 FROM ubuntu:focal
 LABEL maintainer="andif888"
 ENV DEBIAN_FRONTEND noninteractive
-ENV TF_VERSION 1.4.0
+ENV TF_VERSION 1.4.4
 ENV PACKER_VERSION 1.8.6
-ENV VAULT_VERSION 1.13.0
+ENV VAULT_VERSION 1.13.1
 
 ENV pip_packages "ansible cryptography pywinrm kerberos requests_kerberos requests-credssp passlib msrest msrestazure PyVmomi pymssql proxmoxer"
 
