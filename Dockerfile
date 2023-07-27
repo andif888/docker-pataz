@@ -67,4 +67,9 @@ RUN curl -O https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${T
 
 RUN curl -sL https://aka.ms/InstallAzureCLIDeb | bash
 
+RUN curl -O https://vdc-download.vmware.com/vmwb-repository/dcr-public/2ee5a010-babf-450b-ab53-fb2fa4de79af/2a136212-2f83-4f5d-a419-232f34dc08cf/VMware-ovftool-4.4.3-18663434-lin.x86_64.zip \
+    && unzip VMware-ovftool-4.4.3-18663434-lin.x86_64.zip -d /opt \
+    && rm -f VMware-ovftool-4.4.3-18663434-lin.x86_64.zip \
+    && ln -s /opt/ovftool/ovftool /usr/bin/ovftool
+
 CMD    ["/bin/bash"]
