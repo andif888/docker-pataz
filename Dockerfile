@@ -1,9 +1,9 @@
 FROM ubuntu:jammy
 LABEL maintainer="andif888"
 ENV DEBIAN_FRONTEND noninteractive
-ENV TF_VERSION 1.5.4
-ENV PACKER_VERSION 1.9.2
-ENV VAULT_VERSION 1.14.1
+ENV TF_VERSION 1.5.7
+ENV PACKER_VERSION 1.9.4
+ENV VAULT_VERSION 1.14.2
 
 ENV pip_packages "ansible cryptography pywinrm kerberos requests_kerberos requests-credssp passlib msrest msrestazure PyVmomi pymssql proxmoxer"
 
@@ -46,11 +46,10 @@ ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en  
 ENV LC_ALL en_US.UTF-8
 
-RUN pip install --upgrade pip \
-    && pip install $pip_packages \
-    && pip install 'ansible' \
-    && ansible-galaxy collection install azure.azcollection community.general community.hashi_vault \
-    && pip install -r ~/.ansible/collections/ansible_collections/azure/azcollection/requirements-azure.txt
+RUN pip3 install --upgrade pip \
+    && pip3 install $pip_packages \
+    && pip3 install 'ansible' \
+    && ansible-galaxy collection install azure.azcollection community.general community.hashi_vault
 
 RUN curl -O https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip \
     && unzip terraform_${TF_VERSION}_linux_amd64.zip -d /usr/bin \
