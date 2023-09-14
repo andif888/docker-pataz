@@ -36,6 +36,7 @@ RUN apt-get update \
         python3-hvac \
         sshpass \
         unzip \
+        xorriso \
     && rm -rf /var/lib/apt/lists/* \
     && rm -Rf /usr/share/doc && rm -Rf /usr/share/man \
     && apt-get clean
