@@ -1,11 +1,11 @@
 FROM ubuntu:jammy
 LABEL maintainer="andif888"
 ENV DEBIAN_FRONTEND noninteractive
-ENV TF_VERSION 1.6.5
-ENV PACKER_VERSION 1.9.4
-ENV VAULT_VERSION 1.15.3
+ENV TF_VERSION 1.6.6
+ENV PACKER_VERSION 1.10.0
+ENV VAULT_VERSION 1.15.4
 
-ENV pip_packages "ansible cryptography pywinrm kerberos requests_kerberos requests-credssp passlib msrest msrestazure PyVmomi pymssql proxmoxer"
+ENV pip_packages "ansible cryptography pywinrm kerberos requests_kerberos requests-credssp passlib msrest msrestazure PyVmomi markdown2 pymssql proxmoxer"
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
