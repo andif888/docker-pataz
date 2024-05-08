@@ -1,9 +1,9 @@
 FROM ubuntu:jammy
 LABEL maintainer="andif888"
 ENV DEBIAN_FRONTEND noninteractive
-ENV TF_VERSION 1.6.6
-ENV PACKER_VERSION 1.10.0
-ENV VAULT_VERSION 1.15.4
+ENV TF_VERSION 1.8.3
+ENV PACKER_VERSION 1.10.3
+ENV VAULT_VERSION 1.16.2
 
 ENV pip_packages "ansible cryptography pywinrm kerberos requests_kerberos requests-credssp passlib msrest msrestazure PyVmomi markdown2 pymssql proxmoxer"
 
@@ -53,23 +53,23 @@ RUN pip3 install --upgrade pip \
     && ansible-galaxy collection install azure.azcollection community.general community.hashi_vault
 
 RUN curl -O https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip \
-    && unzip terraform_${TF_VERSION}_linux_amd64.zip -d /usr/bin \
+    && unzip -o terraform_${TF_VERSION}_linux_amd64.zip -d /usr/bin \
     && rm -f terraform_${TF_VERSION}_linux_amd64.zip \
     && chmod +x /usr/bin/terraform \
     && curl -O https://releases.hashicorp.com/packer/${PACKER_VERSION}/packer_${PACKER_VERSION}_linux_amd64.zip \
-    && unzip packer_${PACKER_VERSION}_linux_amd64.zip -d /usr/bin \
+    && unzip -o packer_${PACKER_VERSION}_linux_amd64.zip -d /usr/bin \
     && rm -f packer_${PACKER_VERSION}_linux_amd64.zip \
     && chmod +x /usr/bin/packer \
     && curl -O https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_amd64.zip \
-    && unzip vault_${VAULT_VERSION}_linux_amd64.zip -d /usr/bin \
+    && unzip -o vault_${VAULT_VERSION}_linux_amd64.zip -d /usr/bin \
     && rm -f vault_${VAULT_VERSION}_linux_amd64.zip \
     && chmod +x /usr/bin/vault
 
 RUN curl -sL https://aka.ms/InstallAzureCLIDeb | bash
 
-RUN curl -O https://vdc-download.vmware.com/vmwb-repository/dcr-public/2ee5a010-babf-450b-ab53-fb2fa4de79af/2a136212-2f83-4f5d-a419-232f34dc08cf/VMware-ovftool-4.4.3-18663434-lin.x86_64.zip \
-    && unzip VMware-ovftool-4.4.3-18663434-lin.x86_64.zip -d /opt \
-    && rm -f VMware-ovftool-4.4.3-18663434-lin.x86_64.zip \
+RUN curl -O https://vdc-download.vmware.com/vmwb-repository/dcr-public/8a93ce23-4f88-4ae8-b067-ae174291e98f/c609234d-59f2-4758-a113-0ec5bbe4b120/VMware-ovftool-4.6.2-22220919-lin.x86_64.zip \
+    && unzip VMware-ovftool-4.6.2-22220919-lin.x86_64.zip -d /opt \
+    && rm -f VMware-ovftool-4.6.2-22220919-lin.x86_64.zip \
     && ln -s /opt/ovftool/ovftool /usr/bin/ovftool
 
 CMD    ["/bin/bash"]
