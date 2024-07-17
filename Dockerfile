@@ -1,11 +1,11 @@
 FROM ubuntu:jammy
 LABEL maintainer="andif888"
-ENV DEBIAN_FRONTEND noninteractive
-ENV TF_VERSION 1.8.3
-ENV PACKER_VERSION 1.10.3
-ENV VAULT_VERSION 1.16.2
+ENV DEBIAN_FRONTEND=noninteractive
+ENV TF_VERSION=1.9.2
+ENV PACKER_VERSION=1.11.1
+ENV VAULT_VERSION=1.17.2
 
-ENV pip_packages "ansible cryptography pywinrm kerberos requests_kerberos requests-credssp passlib msrest msrestazure PyVmomi markdown2 pymssql proxmoxer"
+ENV pip_packages="ansible cryptography pywinrm kerberos requests_kerberos requests-credssp passlib msrest msrestazure PyVmomi markdown2 pymssql proxmoxer"
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
@@ -43,9 +43,9 @@ RUN apt-get update \
 
 RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
     locale-gen
-ENV LANG en_US.UTF-8  
-ENV LANGUAGE en_US:en  
-ENV LC_ALL en_US.UTF-8
+ENV LANG=en_US.UTF-8  
+ENV LANGUAGE=en_US:en  
+ENV LC_ALL=en_US.UTF-8
 
 RUN pip3 install --upgrade pip \
     && pip3 install $pip_packages \
@@ -67,9 +67,14 @@ RUN curl -O https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${T
 
 RUN curl -sL https://aka.ms/InstallAzureCLIDeb | bash
 
-RUN curl -O https://vdc-download.vmware.com/vmwb-repository/dcr-public/8a93ce23-4f88-4ae8-b067-ae174291e98f/c609234d-59f2-4758-a113-0ec5bbe4b120/VMware-ovftool-4.6.2-22220919-lin.x86_64.zip \
-    && unzip VMware-ovftool-4.6.2-22220919-lin.x86_64.zip -d /opt \
-    && rm -f VMware-ovftool-4.6.2-22220919-lin.x86_64.zip \
+# RUN curl -O https://vdc-download.vmware.com/vmwb-repository/dcr-public/8a93ce23-4f88-4ae8-b067-ae174291e98f/c609234d-59f2-4758-a113-0ec5bbe4b120/VMware-ovftool-4.6.2-22220919-lin.x86_64.zip \
+#     && unzip VMware-ovftool-4.6.2-22220919-lin.x86_64.zip -d /opt \
+#     && rm -f VMware-ovftool-4.6.2-22220919-lin.x86_64.zip \
+#     && ln -s /opt/ovftool/ovftool /usr/bin/ovftool
+
+RUN curl -O https://minio.iamroot.it/public/vmware/VMware-ovftool-4.6.3-24031167-lin.x86_64.zip \
+    && unzip VMware-ovftool-4.6.3-24031167-lin.x86_64.zip -d /opt \
+    && rm -f VMware-ovftool-4.6.3-24031167-lin.x86_64.zip \
     && ln -s /opt/ovftool/ovftool /usr/bin/ovftool
 
 CMD    ["/bin/bash"]
