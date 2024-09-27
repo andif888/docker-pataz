@@ -1,9 +1,9 @@
 FROM ubuntu:jammy
 LABEL maintainer="andif888"
 ENV DEBIAN_FRONTEND=noninteractive
-ENV TF_VERSION=1.9.5
+ENV TF_VERSION=1.9.6
 ENV PACKER_VERSION=1.11.2
-ENV VAULT_VERSION=1.17.5
+ENV VAULT_VERSION=1.17.6
 
 ENV pip_packages="ansible cryptography pywinrm kerberos requests_kerberos requests-credssp passlib msrest msrestazure PyVmomi markdown2 pymssql proxmoxer"
 
@@ -25,15 +25,19 @@ RUN apt-get update \
         lsb-release \
         mkisofs \
         openssh-client \
+        python3 \
         python3-dev \
+        python3-distutils \
         python3-gssapi \
         python3-pip \
         python3-netaddr \
         python3-jmespath \
         python3-setuptools \
+        python3-venv \
         python3-wheel \
         python3-pymssql \
         python3-hvac \
+        software-properties-common \
         sshpass \
         unzip \
         xorriso \
@@ -66,6 +70,8 @@ RUN curl -O https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${T
     && chmod +x /usr/bin/vault
 
 RUN curl -sL https://aka.ms/InstallAzureCLIDeb | bash
+
+RUN pip3 install -r /usr/local/lib/python3.10/dist-packages/ansible_collections/azure/azcollection/requirements.txt
 
 # RUN curl -O https://vdc-download.vmware.com/vmwb-repository/dcr-public/8a93ce23-4f88-4ae8-b067-ae174291e98f/c609234d-59f2-4758-a113-0ec5bbe4b120/VMware-ovftool-4.6.2-22220919-lin.x86_64.zip \
 #     && unzip VMware-ovftool-4.6.2-22220919-lin.x86_64.zip -d /opt \
