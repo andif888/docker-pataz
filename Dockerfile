@@ -55,7 +55,7 @@ RUN pip3 install --upgrade pip \
     && pip3 install $pip_packages \
     && pip3 install 'ansible' \
     && ansible-galaxy collection install azure.azcollection \
-    && ansible-galaxy collection install community.general community.vmware community.windows community.hashi_vault --force
+    && ansible-galaxy collection install community.general community.vmware community.windows community.hashi_vault community.proxmox --force
 
 RUN curl -O https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip \
     && unzip -o terraform_${TF_VERSION}_linux_amd64.zip -d /usr/bin \
