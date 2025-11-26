@@ -1,9 +1,9 @@
 FROM ubuntu:jammy
 LABEL maintainer="andif888"
 ENV DEBIAN_FRONTEND=noninteractive
-ENV TF_VERSION=1.13.3
-ENV PACKER_VERSION=1.14.2
-ENV VAULT_VERSION=1.20.3
+ENV TF_VERSION=1.14.0
+ENV PACKER_VERSION=1.14.3
+ENV VAULT_VERSION=1.21.1
 
 ENV pip_packages="ansible cryptography pywinrm kerberos requests requests_kerberos requests-credssp passlib msrest msrestazure PyVmomi markdown2 pymssql proxmoxer"
 
