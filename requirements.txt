@@ -1,0 +1,22 @@
+# Intentionally unpinned: newest compatible releases on a fresh build.
+# The installed Azure collection contributes additional constraints.
+ansible
+azure-mgmt-datalake-analytics
+azure-mgmt-datalake-store
+cryptography
+gssapi
+hvac
+jmespath
+kerberos
+markdown2
+msrest
+msrestazure
+netaddr
+passlib
+proxmoxer
+pymssql
+pyvmomi
+pywinrm
+requests
+requests-credssp
+requests-kerberos

@@ -1,88 +1,138 @@
-FROM ubuntu:jammy
-LABEL maintainer="andif888"
-ENV DEBIAN_FRONTEND=noninteractive
-ENV TF_VERSION=1.17.0
-ENV PACKER_VERSION=1.16.2
-ENV VAULT_VERSION=2.2.1
+# syntax=docker/dockerfile:1
+FROM ubuntu:noble AS runtime-base
 
-ENV pip_packages="ansible cryptography pywinrm kerberos requests requests_kerberos requests-credssp passlib msrest msrestazure PyVmomi markdown2 pymssql proxmoxer"
+LABEL maintainer="andif888" \
+      org.opencontainers.image.source="https://github.com/andif888/docker-pataz" \
+      org.opencontainers.image.description="Ubuntu Noble infrastructure automation toolbox"
 
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
+ARG DEBIAN_FRONTEND=noninteractive
+ARG TARGETARCH
+
+# Fail early instead of mixing an ARM OS with the x86_64-only OVF binary.
+RUN test "${TARGETARCH:-$(dpkg --print-architecture)}" = amd64
+
+ENV TF_VERSION=1.17.2 \
+    PACKER_VERSION=1.16.2 \
+    VAULT_VERSION=2.2.2 \
+    LANG=en_US.UTF-8 \
+    LANGUAGE=en_US:en \
+    LC_ALL=en_US.UTF-8 \
+    VIRTUAL_ENV=/opt/ansible \
+    ANSIBLE_COLLECTIONS_PATH=/opt/ansible/collections
+ENV PATH="/opt/ansible/bin:${PATH}"
+
+# Runtime libraries, not Python development headers or compilers.
+# make and openssl remain available for existing automation scripts.
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-        apt-transport-https \
-        gcc \
         ca-certificates \
         curl \
+        genisoimage \
         git \
         gnupg \
         jq \
-        krb5-user \
         krb5-config \
+        krb5-user \
+        libffi8 \
+        libgssapi-krb5-2 \
+        libkrb5-3 \
+        libnsl2 \
+        libssl3t64 \
+        locales \
+        make \
+        openssh-client \
+        openssl \
+        python3 \
+        python3-venv \
+        sshpass \
+        xorriso \
+    && sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen \
+    && locale-gen \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Azure CLI from Microsoft's signed Noble apt repository, rather
+# than executing a mutable remote installation script. az owns its Python.
+RUN install -d -m 0755 /etc/apt/keyrings \
+    && curl --fail --show-error --silent --location \
+        https://packages.microsoft.com/keys/microsoft.asc \
+        | gpg --dearmor -o /etc/apt/keyrings/microsoft.gpg \
+    && chmod 0644 /etc/apt/keyrings/microsoft.gpg \
+    && printf '%s\n' \
+        'Types: deb' \
+        'URIs: https://packages.microsoft.com/repos/azure-cli/' \
+        'Suites: noble' \
+        'Components: main' \
+        'Architectures: amd64' \
+        'Signed-By: /etc/apt/keyrings/microsoft.gpg' \
+        > /etc/apt/sources.list.d/azure-cli.sources \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends azure-cli \
+    && rm -rf /var/lib/apt/lists/*
+
+FROM runtime-base AS builder
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        gcc \
         libffi-dev \
         libkrb5-dev \
         libssl-dev \
-        locales \
-        lsb-release \
-        mkisofs \
-        openssh-client \
-        python3 \
         python3-dev \
-        python3-distutils \
-        python3-gssapi \
-        python3-pip \
-        python3-netaddr \
-        python3-jmespath \
-        python3-setuptools \
-        python3-venv \
-        python3-wheel \
-        python3-pymssql \
-        python3-hvac \
-        software-properties-common \
-        sshpass \
         unzip \
-        xorriso \
-    && rm -rf /var/lib/apt/lists/* \
-    && rm -Rf /usr/share/doc && rm -Rf /usr/share/man \
-    && apt-get clean
+    && rm -rf /var/lib/apt/lists/*
 
-RUN sed -i '/en_US.UTF-8/s/^# //g' /etc/locale.gen && \
-    locale-gen
-ENV LANG=en_US.UTF-8  
-ENV LANGUAGE=en_US:en  
-ENV LC_ALL=en_US.UTF-8
+COPY requirements.txt /tmp/requirements.txt
+COPY collections.yml /tmp/collections.yml
 
-RUN pip3 install --upgrade pip \
-    && pip3 install $pip_packages \
-    && pip3 install 'ansible' \
-    && ansible-galaxy collection install azure.azcollection \
-    && ansible-galaxy collection install community.general community.vmware community.windows community.hashi_vault community.proxmox --force
+# Isolated venv: no PEP 668 override and no implicit apt Python imports.
+# Select the newest versions compatible with Python and collection constraints.
+RUN python3 -m venv "${VIRTUAL_ENV}" \
+    && python -m pip install --no-cache-dir --upgrade pip setuptools wheel \
+    && python -m pip install --no-cache-dir --upgrade ansible \
+    && ansible-galaxy collection install --upgrade \
+        -p "${ANSIBLE_COLLECTIONS_PATH}" -r /tmp/collections.yml \
+    && python -m pip install --no-cache-dir --upgrade \
+        -r /tmp/requirements.txt \
+        -r "${ANSIBLE_COLLECTIONS_PATH}/ansible_collections/azure/azcollection/requirements.txt" \
+    && python -m pip check
 
-RUN curl -O https://releases.hashicorp.com/terraform/${TF_VERSION}/terraform_${TF_VERSION}_linux_amd64.zip \
-    && unzip -o terraform_${TF_VERSION}_linux_amd64.zip -d /usr/bin \
-    && rm -f terraform_${TF_VERSION}_linux_amd64.zip \
-    && chmod +x /usr/bin/terraform \
-    && curl -O https://releases.hashicorp.com/packer/${PACKER_VERSION}/packer_${PACKER_VERSION}_linux_amd64.zip \
-    && unzip -o packer_${PACKER_VERSION}_linux_amd64.zip -d /usr/bin \
-    && rm -f packer_${PACKER_VERSION}_linux_amd64.zip \
-    && chmod +x /usr/bin/packer \
-    && curl -O https://releases.hashicorp.com/vault/${VAULT_VERSION}/vault_${VAULT_VERSION}_linux_amd64.zip \
-    && unzip -o vault_${VAULT_VERSION}_linux_amd64.zip -d /usr/bin \
-    && rm -f vault_${VAULT_VERSION}_linux_amd64.zip \
-    && chmod +x /usr/bin/vault
+# Fixed native tool versions, verified against checksums committed to Git.
+COPY checksums.sha256 /tmp/checksums.sha256
+RUN mkdir -p /tmp/downloads /opt/tool-binaries \
+    && cd /tmp/downloads \
+    && for spec in "terraform:${TF_VERSION}" "packer:${PACKER_VERSION}" "vault:${VAULT_VERSION}"; do \
+        tool="${spec%%:*}"; version="${spec#*:}"; \
+        archive="${tool}_${version}_linux_amd64.zip"; \
+        curl --fail --show-error --silent --location --retry 3 \
+            "https://releases.hashicorp.com/${tool}/${version}/${archive}" -o "${archive}"; \
+    done \
+    && curl --fail --show-error --silent --location --retry 3 \
+        https://minio.iamroot.it/public/vmware/VMware-ovftool-4.6.3-24031167-lin.x86_64.zip \
+        -o VMware-ovftool-4.6.3-24031167-lin.x86_64.zip \
+    && sha256sum --check /tmp/checksums.sha256 \
+    && for tool in terraform packer vault; do \
+        unzip -j "${tool}_"'*.zip' "${tool}" -d /opt/tool-binaries; \
+        chmod 0755 "/opt/tool-binaries/${tool}"; \
+    done \
+    && unzip -q VMware-ovftool-4.6.3-24031167-lin.x86_64.zip -d /opt \
+    && rm -rf /tmp/downloads
 
-RUN curl -sL https://aka.ms/InstallAzureCLIDeb | bash
+FROM runtime-base AS final
 
-RUN pip3 install -r /usr/local/lib/python3.10/dist-packages/ansible_collections/azure/azcollection/requirements.txt
-RUN pip3 install azure-mgmt-datalake-store azure-mgmt-datalake-analytics && pip3 install --upgrade requests
+COPY --from=builder /opt/ansible /opt/ansible
+COPY --from=builder /opt/tool-binaries/ /usr/local/bin/
+COPY --from=builder /opt/ovftool /opt/ovftool
+COPY --chmod=0755 scripts/smoke-test.sh /usr/local/bin/docker-pataz-smoke-test
 
-# RUN curl -O https://vdc-download.vmware.com/vmwb-repository/dcr-public/8a93ce23-4f88-4ae8-b067-ae174291e98f/c609234d-59f2-4758-a113-0ec5bbe4b120/VMware-ovftool-4.6.2-22220919-lin.x86_64.zip \
-#     && unzip VMware-ovftool-4.6.2-22220919-lin.x86_64.zip -d /opt \
-#     && rm -f VMware-ovftool-4.6.2-22220919-lin.x86_64.zip \
-#     && ln -s /opt/ovftool/ovftool /usr/bin/ovftool
+RUN ln -s /opt/ovftool/ovftool /usr/local/bin/ovftool \
+    && docker-pataz-smoke-test \
+    && mkdir -p /usr/local/share/docker-pataz \
+    && python -m pip freeze --all > /usr/local/share/docker-pataz/pip-freeze.txt \
+    && ansible-galaxy collection list > /usr/local/share/docker-pataz/collections.txt \
+    && dpkg-query -W > /usr/local/share/docker-pataz/os-packages.txt \
+    && az version > /usr/local/share/docker-pataz/azure-version.json
 
-RUN curl -O https://minio.iamroot.it/public/vmware/VMware-ovftool-4.6.3-24031167-lin.x86_64.zip \
-    && unzip VMware-ovftool-4.6.3-24031167-lin.x86_64.zip -d /opt \
-    && rm -f VMware-ovftool-4.6.3-24031167-lin.x86_64.zip \
-    && ln -s /opt/ovftool/ovftool /usr/bin/ovftool
-
-CMD    ["/bin/bash"]
+# Preserve the existing root default for compatibility with provisioning jobs.
+# Prefer --user for jobs that do not need root; see README for bind mounts.
+CMD ["/bin/bash"]
