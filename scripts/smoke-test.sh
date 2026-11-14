@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Quick Node/npm checks: no package downloads or application test suite.
+node --version
+npm --version
+npx --version
+node -e 'if (process.versions.node.split(".")[0] !== "22") process.exit(1); console.log("Node 22 execution: OK")'
+
 python -m pip check
 python - <<'PY'
 import importlib
