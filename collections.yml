@@ -1,0 +1,8 @@
+---
+collections:
+  - name: azure.azcollection
+  - name: community.general
+  - name: community.hashi_vault
+  - name: community.proxmox
+  - name: community.vmware
+  - name: community.windows
