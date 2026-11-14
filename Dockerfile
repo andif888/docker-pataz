@@ -1,4 +1,7 @@
 # syntax=docker/dockerfile:1
+# Track current patches within Node 22, without adopting a new major.
+FROM node:22-bookworm-slim AS node-source
+
 FROM ubuntu:noble AS runtime-base
 
 LABEL maintainer="andif888" \
@@ -120,6 +123,18 @@ RUN mkdir -p /tmp/downloads /opt/tool-binaries \
 
 FROM runtime-base AS final
 
+# Keep these additions in the final stage so the Python builder stays cached.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libatomic1 libstdc++6 \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy only Node and its bundled npm, not the source image's entrypoint,
+# user, headers, Yarn, or unrelated /usr/local contents.
+COPY --from=node-source /usr/local/bin/node /usr/local/bin/node
+COPY --from=node-source /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/npm
+RUN ln -s ../lib/node_modules/npm/bin/npm-cli.js /usr/local/bin/npm \
+    && ln -s ../lib/node_modules/npm/bin/npx-cli.js /usr/local/bin/npx
+
 COPY --from=builder /opt/ansible /opt/ansible
 COPY --from=builder /opt/tool-binaries/ /usr/local/bin/
 COPY --from=builder /opt/ovftool /opt/ovftool
@@ -131,7 +146,9 @@ RUN ln -s /opt/ovftool/ovftool /usr/local/bin/ovftool \
     && python -m pip freeze --all > /usr/local/share/docker-pataz/pip-freeze.txt \
     && ansible-galaxy collection list > /usr/local/share/docker-pataz/collections.txt \
     && dpkg-query -W > /usr/local/share/docker-pataz/os-packages.txt \
-    && az version > /usr/local/share/docker-pataz/azure-version.json
+    && az version > /usr/local/share/docker-pataz/azure-version.json \
+    && node --version > /usr/local/share/docker-pataz/node-version.txt \
+    && npm --version > /usr/local/share/docker-pataz/npm-version.txt
 
 # Preserve the existing root default for compatibility with provisioning jobs.
 # Prefer --user for jobs that do not need root; see README for bind mounts.

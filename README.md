@@ -4,6 +4,7 @@ Ubuntu 24.04 **Noble**, `linux/amd64` infrastructure automation toolbox:
 
 - Terraform 1.17.2, Packer 1.16.2, Vault 2.2.2
 - Latest compatible Ansible and Azure, Windows, VMware, Vault and Proxmox collections
+- Node.js 22 (current patch within the major) and its bundled npm/npx
 - Azure CLI from Microsoft's signed Noble apt repository
 - VMware OVF Tool 4.6.3
 - SSH/Kerberos, ISO tools, `make`, and `openssl`
@@ -28,6 +29,17 @@ immutable rollback point. Release tags alone are not intrinsically immutable.
 Only amd64 is supported: the OVF download is x86_64-only. An ARM build fails
 explicitly instead of silently mixing incompatible binaries. An Intel/AMD host
 can omit `--platform`; ARM hosts need amd64 emulation.
+
+## Node.js
+
+Node 22 and its bundled npm/npx come from the official `node:22-bookworm-slim`
+image. Only the runtime binary and npm directory are copied; Ubuntu remains
+Noble, with no Node image entrypoint/user or Yarn added. `--pull` refreshes the
+source image to the current patch within Node 22.
+
+This supports ordinary JavaScript/npm CLI workloads. Native npm addons that
+lack prebuilt binaries can require a separate build stage with a C++ compiler
+and Node headers; those development tools are deliberately not added here.
 
 ## Python and localhost Ansible
 
@@ -72,6 +84,7 @@ Every image contains `/usr/local/share/docker-pataz/` with:
 - `collections.txt`: installed collection versions
 - `os-packages.txt`: installed apt packages
 - `azure-version.json`: Azure CLI version
+- `node-version.txt` and `npm-version.txt`: Node/npm versions
 
 These are receipts, **not an input lock file or SBOM**. Native tool downloads
 are checked against `checksums.sha256`; update the version and its trusted
