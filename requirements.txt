@@ -3,6 +3,7 @@
 ansible
 azure-mgmt-datalake-analytics
 azure-mgmt-datalake-store
+boto3
 cryptography
 gssapi
 hvac
@@ -17,6 +18,7 @@ proxmoxer
 pymssql
 pyvmomi
 pywinrm
+PyYAML
 requests
 requests-credssp
 requests-kerberos

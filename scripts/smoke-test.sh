@@ -20,6 +20,7 @@ for name in (
     'msrestazure', 'pyVmomi', 'markdown2', 'pymssql', 'proxmoxer',
     'netaddr', 'jmespath', 'hvac', 'azure.identity', 'azure.cli.core',
     'azure.mgmt.datalake.store', 'azure.mgmt.datalake.analytics',
+    'yaml', 'boto3',
 ):
     importlib.import_module(name)
 from passlib.hash import sha512_crypt
